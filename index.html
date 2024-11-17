@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Resume Builder</h1>
+        <form id="resumeForm">
+            <label for="firstName">First Name:</label>
+            <input type="text" id="firstName" required>
+
+            <label for="address">Address:</label>
+            <textarea id="address" rows="2" required></textarea>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" required>
+
+            <label for="objective">Objective:</label>
+            <textarea id="objective" rows="2" required></textarea>
+
+            <label for="skills">Skills (comma-separated):</label>
+            <input type="text" id="skills" required>
+
+            <label for="education">Education (comma-separated):</label>
+            <textarea id="education" rows="2" required></textarea>
+
+            <label for="projects">Projects (comma-separated):</label>
+            <textarea id="projects" rows="2" required></textarea>
+
+            <label for="certificates">Certificates (comma-separated):</label>
+            <textarea id="certificates" rows="2" required></textarea>
+
+            <label for="photo">Upload Photo:</label>
+            <input type="file" class="rajan" id="photo" accept="image/*" required>
+
+            <button type="button" id="generateResume">Generate Resume</button>
+        </form>
+
+        <div id="animation" class="hidden">Processing...</div>
+        <a id="downloadBtn" class="hidden" href="#">Download Resume</a>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script> <style>      body {
+    font-family: Arial, sans-serif;
+    background-color: #121212;
+    color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+    text-align: center;
+    color: #4caf50;
+}
+
+label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+}
+
+input, textarea, button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #4caf50;
+    border-radius: 5px;
+    background: #121212;
+    color: #f5f5f5;
+}
+
+button {
+    background: #4caf50;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #388e3c;
+}
+
+.hidden {
+    display: none;
+}
+
+#animation {
+    text-align: center;
+    font-size: 20px;
+    color: #4caf50;
+    margin-top: 20px;
+}
+
+a {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    background: #4caf50;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+a:hover {
+    background: #388e3c;
+}
+</style>  <script>document.getElementById("generateResume").addEventListener("click", () => {
+    const animation = document.getElementById("animation");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    // Show processing animation
+    animation.classList.remove("hidden");
+    downloadBtn.classList.add("hidden");
+
+    setTimeout(() => {
+        animation.classList.add("hidden");
+        generatePDF();
+    }, 2000); // 2 seconds animation
+});
+
+async function generatePDF() {
+    const firstName = document.getElementById("firstName").value;
+    const address = document.getElementById("address").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+    const objective = document.getElementById("objective").value;
+    const skills = document.getElementById("skills").value ? document.getElementById("skills").value.split(",") : [];
+    const education = document.getElementById("education").value ? document.getElementById("education").value.split(",") : [];
+    const projects = document.getElementById("projects").value ? document.getElementById("projects").value.split(",") : [];
+    const certificates = document.getElementById("certificates").value ? document.getElementById("certificates").value.split(",") : [];
+    const photoFile = document.getElementById("photo").files[0];
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Add Photo to PDF
+    if (photoFile) {
+        const reader = new FileReader();
+        reader.onload = async function (event) {
+            const imgData = event.target.result;
+            doc.addImage(imgData, "JPEG", 150, 10, 40, 40); // Adjust dimensions for photo
+            addDetailsToPDF(doc, firstName, address, email, phone, objective, skills, education, projects, certificates);
+        };
+        reader.readAsDataURL(photoFile);
+    } else {
+        addDetailsToPDF(doc, firstName, address, email, phone, objective, skills, education, projects, certificates);
+    }
+}
+
+function addDetailsToPDF(doc, firstName, address, email, phone, objective, skills, education, projects, certificates) {
+    // Set larger font size
+    doc.setFontSize(14);
+    let yPosition = 30; // Start position for text
+
+    // Add only filled fields to the PDF
+    if (firstName) {
+        doc.text(20, yPosition, `Name: ${firstName}`);
+        yPosition += 10;
+    }
+    if (address) {
+        doc.text(20, yPosition, `Address: ${address}`);
+        yPosition += 10;
+    }
+    if (email) {
+        doc.text(20, yPosition, `Email: ${email}`);
+        yPosition += 10;
+    }
+    if (phone) {
+        doc.text(20, yPosition, `Phone: ${phone}`);
+        yPosition += 10;
+    }
+    if (objective) {
+        doc.text(20, yPosition, `Objective: ${objective}`);
+        yPosition += 10;
+    }
+
+    if (skills.length > 0) {
+        doc.text(20, yPosition, `Skills:`);
+        yPosition += 10;
+        skills.forEach(skill => {
+            doc.text(30, yPosition, `- ${skill.trim()}`);
+            yPosition += 10;
+        });
+    }
+
+    if (education.length > 0) {
+        doc.text(20, yPosition, `Education:`);
+        yPosition += 10;
+        education.forEach(edu => {
+            doc.text(30, yPosition, `- ${edu.trim()}`);
+            yPosition += 10;
+        });
+    }
+
+    if (projects.length > 0) {
+        doc.text(20, yPosition, `Projects:`);
+        yPosition += 10;
+        projects.forEach(proj => {
+            doc.text(30, yPosition, `- ${proj.trim()}`);
+            yPosition += 10;
+        });
+    }
+
+    if (certificates.length > 0) {
+        doc.text(20, yPosition, `Certificates:`);
+        yPosition += 10;
+        certificates.forEach(cert => {
+            doc.text(30, yPosition, `- ${cert.trim()}`);
+            yPosition += 10;
+        });
+    }
+
+    // Show download button
+    const downloadBtn = document.getElementById("downloadBtn");
+    const pdfBlob = doc.output("blob");
+    const url = URL.createObjectURL(pdfBlob);
+    downloadBtn.href = url;
+    downloadBtn.download = "resume.pdf";
+    downloadBtn.classList.remove("hidden");
+}
+</script> 
